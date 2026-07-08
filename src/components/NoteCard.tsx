@@ -1,9 +1,16 @@
 import { useState } from "react";
+import {
+  FaThumbtack,
+  FaArchive,
+  FaTrash,
+  FaEdit,
+  FaEye,
+  FaUndo,
+  FaSave,
+} from "react-icons/fa";
 
 import type { Note } from "../types/note";
-
 import { useNotes } from "../context/NotesContext";
-
 import NoteModal from "./NoteModal";
 
 interface Props {
@@ -23,7 +30,7 @@ export default function NoteCard({
     updateNote,
   } = useNotes();
 
-  const [open, setOpen] =
+  const [showModal, setShowModal] =
     useState(false);
 
   const [editing, setEditing] =
@@ -32,19 +39,15 @@ export default function NoteCard({
   const [title, setTitle] =
     useState(note.title);
 
-  const [
-    description,
-    setDescription,
-  ] = useState(
-    note.description
-  );
+  const [description, setDescription] =
+    useState(note.description);
 
   const [tags, setTags] =
     useState(
-      note.tags.join(", ")
+      note.tags?.join(", ") || ""
     );
 
-  const saveEdit = () => {
+  const saveChanges = () => {
     updateNote(
       note.id,
       title,
@@ -62,7 +65,7 @@ export default function NoteCard({
 
   return (
     <>
-      <div className="bg-white rounded-xl shadow p-4">
+      <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all p-5">
         {editing ? (
           <>
             <input
@@ -72,7 +75,7 @@ export default function NoteCard({
                   e.target.value
                 )
               }
-              className="border p-2 rounded w-full mb-2"
+              className="w-full border rounded-lg p-2 mb-2"
             />
 
             <textarea
@@ -83,7 +86,7 @@ export default function NoteCard({
                   e.target.value
                 )
               }
-              className="border p-2 rounded w-full mb-2"
+              className="w-full border rounded-lg p-2 mb-2"
             />
 
             <input
@@ -93,46 +96,52 @@ export default function NoteCard({
                   e.target.value
                 )
               }
-              className="border p-2 rounded w-full mb-2"
+              className="w-full border rounded-lg p-2 mb-3"
             />
 
             <button
-              onClick={saveEdit}
-              className="bg-green-600 text-white px-3 py-1 rounded"
+              onClick={saveChanges}
+              className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg"
             >
+              <FaSave />
               Save
             </button>
           </>
         ) : (
           <>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-start">
               <h3 className="font-bold text-lg">
                 {note.title}
               </h3>
 
               {note.pinned && (
-                <span>
-                  📌
-                </span>
+                <FaThumbtack className="text-yellow-500" />
               )}
             </div>
 
-            <p className="mt-2 text-gray-600 line-clamp-3">
+            <p className="text-gray-600 mt-3 line-clamp-4">
               {note.description}
             </p>
 
-            <div className="flex flex-wrap gap-2 mt-3">
-              {note.tags.map(
+            <div className="flex flex-wrap gap-2 mt-4">
+              {(note.tags || []).map(
                 (tag) => (
                   <span
                     key={tag}
-                    className="bg-blue-100 px-2 py-1 rounded text-sm"
+                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs"
                   >
                     #{tag}
                   </span>
                 )
               )}
             </div>
+
+            <p className="text-xs text-gray-500 mt-4">
+              Created:{" "}
+              {new Date(
+                note.createdAt
+              ).toLocaleDateString()}
+            </p>
 
             <div className="flex flex-wrap gap-2 mt-4">
               {!note.archived &&
@@ -144,11 +153,9 @@ export default function NoteCard({
                           note.id
                         )
                       }
-                      className="border px-2 py-1 rounded"
+                      className="p-2 border rounded-lg hover:bg-gray-100"
                     >
-                      {note.pinned
-                        ? "Unpin"
-                        : "Pin"}
+                      <FaThumbtack />
                     </button>
 
                     <button
@@ -157,9 +164,9 @@ export default function NoteCard({
                           note.id
                         )
                       }
-                      className="border px-2 py-1 rounded"
+                      className="p-2 border rounded-lg hover:bg-gray-100"
                     >
-                      Archive
+                      <FaArchive />
                     </button>
                   </>
                 )}
@@ -171,9 +178,9 @@ export default function NoteCard({
                       note.id
                     )
                   }
-                  className="border px-2 py-1 rounded"
+                  className="p-2 border rounded-lg hover:bg-gray-100"
                 >
-                  Restore
+                  <FaUndo />
                 </button>
               )}
 
@@ -185,9 +192,9 @@ export default function NoteCard({
                         note.id
                       )
                     }
-                    className="border px-2 py-1 rounded"
+                    className="p-2 border rounded-lg hover:bg-gray-100"
                   >
-                    Restore
+                    <FaUndo />
                   </button>
 
                   <button
@@ -196,9 +203,9 @@ export default function NoteCard({
                         note.id
                       )
                     }
-                    className="bg-red-600 text-white px-2 py-1 rounded"
+                    className="p-2 bg-red-600 text-white rounded-lg"
                   >
-                    Delete Forever
+                    <FaTrash />
                   </button>
                 </>
               ) : (
@@ -208,9 +215,9 @@ export default function NoteCard({
                       note.id
                     )
                   }
-                  className="border px-2 py-1 rounded"
+                  className="p-2 border rounded-lg hover:bg-gray-100"
                 >
-                  Trash
+                  <FaTrash />
                 </button>
               )}
 
@@ -219,21 +226,23 @@ export default function NoteCard({
                   <button
                     onClick={() =>
                       setEditing(
-                        !editing
+                        true
                       )
                     }
-                    className="border px-2 py-1 rounded"
+                    className="p-2 border rounded-lg hover:bg-gray-100"
                   >
-                    Edit
+                    <FaEdit />
                   </button>
 
                   <button
                     onClick={() =>
-                      setOpen(true)
+                      setShowModal(
+                        true
+                      )
                     }
-                    className="border px-2 py-1 rounded"
+                    className="p-2 border rounded-lg hover:bg-gray-100"
                   >
-                    View
+                    <FaEye />
                   </button>
                 </>
               )}
@@ -242,11 +251,11 @@ export default function NoteCard({
         )}
       </div>
 
-      {open && (
+      {showModal && (
         <NoteModal
           note={note}
           onClose={() =>
-            setOpen(false)
+            setShowModal(false)
           }
         />
       )}
